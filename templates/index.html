@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Digital Watermarking DCT</title>
+    <style>
+        body {
+            background-color: #0B192C;
+            color: #FFFFFF;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1A2E46;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 400px;
+        }
+        h2 { text-align: center; border-bottom: 2px solid #3A5B82; padding-bottom: 10px; color: #fff; }
+        label { display: block; margin-top: 15px; font-size: 14px; color: #d0d7de; }
+        input[type="text"], input[type="file"], input[type="password"] {
+            width: 92%; padding: 10px; margin: 5px 0 15px 0;
+            background-color: #0B192C; color: white; border: 1px solid #3A5B82; border-radius: 5px;
+        }
+        button {
+            width: 100%; padding: 12px; background-color: #3A5B82;
+            color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;
+        }
+        button:hover { background-color: #4A73A3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Watermark Generator</h2>
+        <form action="/" method="POST" enctype="multipart/form-data">
+            <label>Upload Citra (PNG/JPG):</label>
+            <input type="file" name="image" accept="image/*" required>
+            
+            <label>Teks Watermark (NPM / Nama):</label>
+            <input type="text" name="watermark_text" placeholder="Contoh: 237006001" required>
+            
+            <label>Kunci Rahasia (Angka):</label>
+            <input type="password" name="secret_key" placeholder="Contoh: 12345" required>
+            
+            <button type="submit">Sisipkan Watermark</button>
+        </form>
+    </div>
+</body>
+</html>

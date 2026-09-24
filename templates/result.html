@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Hasil Watermark & Pengujian</title>
+    <style>
+        body { background-color: #0B192C; color: #FFFFFF; font-family: sans-serif; padding: 20px; text-align: center; }
+        .container { background-color: #1A2E46; padding: 20px; border-radius: 10px; display: inline-block; width: 80%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #3A5B82; padding: 10px; text-align: center; }
+        th { background-color: #3A5B82; }
+        a.btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #3A5B82; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        a.btn:hover { background-color: #4A73A3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hasil Watermarking & Analisis Serangan</h2>
+        <p><b>PSNR Citra Ber-watermark:</b> {{ "%.2f"|format(psnr) }} dB</p>
+        
+        <table>
+            <tr>
+                <th>Jenis Serangan</th>
+                <th>PSNR (dB)</th>
+                <th>Normalized Correlation (NC)</th>
+                <th>Bit Error Rate (BER)</th>
+            </tr>
+            {% for row in table %}
+            <tr>
+                <td>{{ row['Serangan'] }}</td>
+                <td>{{ "%.2f"|format(row['PSNR']) }}</td>
+                <td>{{ "%.4f"|format(row['NC']) }}</td>
+                <td>{{ "%.4f"|format(row['BER']) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        
+        <br>
+        <a class="btn" href="/download-excel">Unduh Laporan Excel (XLSX)</a>
+        <br><br>
+        <a href="/" style="color: #8ab4f8;">&larr; Kembali ke Beranda</a>
+    </div>
+</body>
+</html>
