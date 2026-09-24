@@ -1,29 +1,22 @@
+"""Deteksi/ekstraksi watermark (blind) dengan korelasi terhadap barisan PN dari kunci rahasia."""
 import numpy as np
 from PIL import Image
-from watermark.embed import dct2
+from watermark.dct import blocks_dct
+from watermark.embed import make_plan, pad8, ROWS, COLS
+from watermark.utils import bits_to_text
+
 
 def extract_watermark(watermarked_image_path, secret_key, watermark_length_bytes=8):
-    img = Image.open(watermarked_image_path).convert('L')
-    img_arr = np.float32(img)
-    dct_img = dct2(img_arr)
-    
-    np.random.seed(int(secret_key))
-    total_bits = watermark_length_bytes * 8
-    extracted_bits = []
-    
-    rows, cols = dct_img.shape
-    for _ in range(total_bits):
-        r = np.random.randint(5, rows // 2)
-        c = np.random.randint(5, cols // 2)
-        val = dct_img[r, c]
-        
-        # Threshold decision
-        if val > 0:
-            extracted_bits.append('1')
-        else:
-            extracted_bits.append('0')
-            
-    binary_str = ''.join(extracted_bits)
-    chars = [binary_str[i:i+8] for i in range(0, len(binary_str), 8)]
-    text = ''.join([chr(int(b, 2)) for b in chars if len(b) == 8])
-    return text, binary_str
+    y = np.asarray(Image.open(watermarked_image_path).convert('YCbCr').split()[0], dtype=np.float64)
+    coef = blocks_dct(pad8(y) - 128.0)
+    hb, wb = coef.shape[:2]
+    flat = coef.reshape(hb * wb, 8, 8)
+
+    n_bits = watermark_length_bytes * 8
+    order, owner, pn = make_plan(secret_key, hb * wb, n_bits)
+    vals = flat[order[:, None], ROWS[None, :], COLS[None, :]]
+    corr = (vals * pn).sum(axis=1)
+    score = np.bincount(owner, weights=corr, minlength=n_bits)
+
+    bits = ''.join('1' if s > 0 else '0' for s in score)
+    return bits_to_text(bits), bits
