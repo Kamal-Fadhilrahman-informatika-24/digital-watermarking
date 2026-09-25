@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Digital Watermarking{% endblock %} | Robust DCT Image Protection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  {% set ep = request.endpoint or '' %}
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="{{ url_for('main.home') }}">DIGITAL WATERMARKING</a>
+      <button class="nav-toggle" id="nav-toggle" aria-controls="nav-links" aria-expanded="false">Menu</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="{{ url_for('main.home') }}" class="{{ 'active' if ep == 'main.home' }}">Home</a></li>
+        <li><a href="{{ url_for('wm.embed') }}" class="{{ 'active' if ep in ('wm.embed', 'wm.result') }}">Watermark</a></li>
+        <li><a href="{{ url_for('wm.detect') }}" class="{{ 'active' if ep == 'wm.detect' }}">Detect</a></li>
+        <li><a href="{{ url_for('testing.attack_testing') }}" class="{{ 'active' if ep in ('testing.attack_testing', 'testing.run_result') }}">Attack Testing</a></li>
+        <li><a href="{{ url_for('testing.comparison') }}" class="{{ 'active' if ep == 'testing.comparison' }}">Comparison</a></li>
+        <li><a href="{{ url_for('main.about') }}" class="{{ 'active' if ep == 'main.about' }}">About</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">Proyek akademik Keamanan Informasi: Digital Watermarking (Robust DCT vs LSB Fragile). Bukan produk komersial.</div>
+  </footer>
+
+  <div class="loading" id="loading" role="status" aria-live="polite">
+    <div><div class="spinner"></div><p data-loading-text>Memproses...</p><p class="muted">Mohon tunggu, jangan tutup halaman.</p></div>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

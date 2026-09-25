@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+{% set flat = [] %}{% for p in pairs %}{% for cell in p %}{% set _ = flat.append(cell) %}{% endfor %}{% endfor %}
+<section class="hero">
+  <div>
+    <p class="kicker">Keamanan Informasi</p>
+    <h1>DIGITAL WATERMARKING<br>Robust DCT Image Protection</h1>
+    <p class="lead">Aplikasi untuk menyisipkan watermark digital ke dalam citra menggunakan metode Robust DCT dan menguji ketahanannya terhadap berbagai manipulasi citra.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="{{ url_for('wm.embed') }}">Mulai Watermarking</a>
+      <a class="btn" href="{{ url_for('testing.attack_testing') }}">Pengujian</a>
+      <a class="btn" href="{{ url_for('testing.comparison') }}">Perbandingan Metode</a>
+    </div>
+  </div>
+  <figure class="dct-figure">
+    <svg viewBox="0 0 328 328" role="img" aria-label="Blok DCT 8 kali 8 dengan pasangan koefisien mid-frequency yang dipakai">
+      {% for r in range(8) %}{% for c in range(8) %}
+        {% if r == 0 and c == 0 %}{% set fill = '#f2c96b' %}{% set op = 1 %}
+        {% elif (r, c) in flat %}{% set fill = '#6cc4e8' %}{% set op = 1 %}
+        {% else %}{% set fill = '#27466f' %}{% set op = 0.95 - (r + c) * 0.045 %}{% endif %}
+        <rect x="{{ 4 + c * 40 }}" y="{{ 4 + r * 40 }}" width="36" height="36" rx="4" fill="{{ fill }}" opacity="{{ op }}"/>
+      {% endfor %}{% endfor %}
+    </svg>
+    <figcaption>Satu blok DCT 8×8. Kuning: koefisien DC (tidak diubah). Biru: pasangan koefisien mid-frequency yang membawa bit watermark; pasangan tiap blok dipilih oleh secret key.</figcaption>
+  </figure>
+</section>
+
+<section class="section">
+  <h2>Yang ada di aplikasi ini</h2>
+  <div class="grid grid-3">
+    <div class="card robust"><h3>Robust DCT</h3><p>Bit watermark ditanam di koefisien mid-frequency blok 8×8 pada channel luminance. Ekstraksi bersifat blind: hanya butuh citra dan secret key.</p></div>
+    <div class="card fragile"><h3>LSB Fragile</h3><p>Fitur pengayaan. Bit watermark ditulis di LSB piksel dan sengaja rapuh, sebagai pembanding bagi DCT.</p></div>
+    <div class="card"><h3>PSNR</h3><p>Ukuran kemiripan dua citra dalam dB. Dipakai untuk kualitas citra ber-watermark dan citra setelah serangan.</p></div>
+    <div class="card"><h3>NC</h3><p>Normalized Correlation antara bit watermark asli dan hasil ekstraksi. Nilai 1 berarti identik.</p></div>
+    <div class="card"><h3>BER</h3><p>Bit Error Rate: proporsi bit yang salah setelah ekstraksi. Nilai 0 berarti tanpa error.</p></div>
+    <div class="card"><h3>Attack Testing</h3><p>JPEG 90/70/50, cropping, resize, Gaussian noise, brightness, dan contrast, semuanya menghasilkan file serangan nyata.</p></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Alur proses</h2>
+  <ol class="steps">
+    <li>Unggah citra, isi teks watermark dan secret key.</li>
+    <li>Citra diubah ke YCrCb, channel Y dibagi blok 8×8 lalu di-DCT.</li>
+    <li>Secret key (SHA-256, PRNG) menentukan urutan blok dan pasangan koefisien.</li>
+    <li>Payload terstruktur (header, panjang, teks UTF-8, CRC32) ditanam, lalu IDCT menghasilkan citra ber-watermark.</li>
+    <li>Ekstraksi mengembalikan teks; PSNR, NC, dan BER dihitung dari data aktual.</li>
+    <li>Serangan dijalankan, ekstraksi diulang, hasil ditampilkan sebagai tabel, grafik, dan laporan XLSX.</li>
+  </ol>
+</section>
+{% endblock %}

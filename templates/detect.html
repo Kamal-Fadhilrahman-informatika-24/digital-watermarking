@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Detect{% endblock %}
+{% block content %}
+<section class="section">
+  <h1>Deteksi watermark</h1>
+  <p class="muted">Unggah citra ber-watermark atau citra yang sudah diserang, lalu masukkan secret key yang sama.</p>
+  {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+
+  {% if detection %}
+  <div class="card" style="margin-bottom:1rem">
+    <h2>Hasil deteksi
+      <span class="badge {{ 'ok' if detection.status == 'SUCCESS' else 'fail' }}">{{ detection.status }}</span></h2>
+    <p>{{ detection.message }}</p>
+    {% if detection.note %}<p class="hint">{{ detection.note }}</p>{% endif %}
+    <div class="metrics">
+      <div class="metric"><div class="label">Method</div><div class="value" style="font-family:var(--sans);font-size:1.1rem">{{ detection.method }}</div></div>
+      <div class="metric"><div class="label">NC</div><div class="value">{{ '%.4f'|format(detection.nc) if detection.nc is not none else 'N/A' }}</div></div>
+      <div class="metric"><div class="label">BER</div><div class="value">{{ '%.4f'|format(detection.ber) if detection.ber is not none else 'N/A' }}</div></div>
+    </div>
+    <h3>Watermark</h3>
+    <div class="payload">{{ detection.watermark or '(tidak ditemukan)' }}</div>
+    {% if detection.nc is none %}<p class="hint">NC dan BER hanya bisa dihitung jika teks watermark asli diisi pada form di bawah.</p>{% endif %}
+  </div>
+  {% endif %}
+
+  <form class="card form-card" method="post" action="{{ url_for('wm.detect') }}" enctype="multipart/form-data" data-loading="Mendeteksi watermark...">
+    <input type="hidden" name="job" value="{{ form.job }}">
+    <label for="image">Upload citra ber-watermark / hasil serangan</label>
+    <input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" {{ 'required' if not job }} data-preview="preview">
+    {% if job %}<p class="hint">Dikosongkan = memakai citra ber-watermark dari proses embedding terakhir ({{ job.job_id }}).</p>{% endif %}
+    <div class="preview-box" id="preview">
+      {% if job %}<div class="image-frame"><img src="{{ url_for('wm.files', category='watermarked', filename=job.job_id ~ '.png') }}" alt="Citra ber-watermark"></div>{% endif %}
+    </div>
+
+    <label for="secret_key">Secret key</label>
+    <input type="password" id="secret_key" name="secret_key" required autocomplete="off">
+
+    <label for="method">Metode</label>
+    <select id="method" name="method">
+      <option value="dct" {{ 'selected' if form.method != 'lsb' }}>DCT Robust</option>
+      <option value="lsb" {{ 'selected' if form.method == 'lsb' }}>LSB Fragile</option>
+    </select>
+
+    <label for="expected">Teks watermark asli (opsional)</label>
+    <input type="text" id="expected" name="expected" maxlength="64" value="{{ form.expected }}">
+    <p class="hint">Diisi bila ingin menghitung NC dan BER terhadap watermark asli.</p>
+
+    <details class="advanced">
+      <summary>Citra pernah di-resize? Isi ukuran aslinya</summary>
+      <div class="inline">
+        <div><label for="orig_w">Lebar asli (px)</label><input type="number" id="orig_w" name="orig_w" min="16" max="8000"></div>
+        <div><label for="orig_h">Tinggi asli (px)</label><input type="number" id="orig_h" name="orig_h" min="16" max="8000"></div>
+      </div>
+      <p class="hint">Metode DCT membaca grid blok 8×8, sehingga citra hasil resize perlu dikembalikan ke ukuran asli sebelum dideteksi.</p>
+    </details>
+    <div class="btn-row"><button class="btn btn-primary" type="submit">Detect Watermark</button></div>
+  </form>
+</section>
+{% endblock %}

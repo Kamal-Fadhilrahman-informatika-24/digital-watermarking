@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Comparison{% endblock %}
+{% block content %}
+<section class="section">
+  <h1>Perbandingan metode: DCT Robust vs LSB Fragile</h1>
+  <p class="muted">Dataset, teks watermark, secret key, dan serangan sama untuk kedua metode. Semua angka dihitung dari file hasil serangan. Dataset saat ini: {{ dataset_count }} citra di <code>test_data/original/</code>.</p>
+  {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+
+  <form class="card form-card" method="post" action="{{ url_for('testing.run_comparison') }}" data-loading="Menjalankan perbandingan pada seluruh dataset (10-60 detik)...">
+    <div class="inline">
+      <div><label for="watermark_text">Teks watermark</label><input type="text" id="watermark_text" name="watermark_text" maxlength="64" value="{{ default_watermark }}"></div>
+      <div><label for="secret_key">Secret key</label><input type="password" id="secret_key" name="secret_key" required autocomplete="off"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" type="submit">{{ 'Jalankan ulang perbandingan' if results else 'Jalankan perbandingan' }}</button>
+      {% if results and xlsx_ready %}<a class="btn" href="{{ url_for('testing.download_report', name='watermark_testing.xlsx') }}">Download Laporan XLSX</a>{% endif %}</div>
+  </form>
+</section>
+
+{% if results %}
+<section class="section">
+  <h2>Ringkasan per serangan (rata-rata {{ results.dataset|length }} citra)</h2>
+  <p class="muted">Dijalankan {{ results.generated_at }} &middot; watermark "{{ results.watermark_text }}" &middot; {{ results.seconds }} detik.</p>
+  <div class="table-wrap"><table>
+    <thead>
+      <tr><th rowspan="2">Attack</th><th colspan="4" style="text-align:center">DCT Robust</th><th colspan="4" style="text-align:center">LSB Fragile</th></tr>
+      <tr><th class="num">PSNR</th><th class="num">NC</th><th class="num">BER</th><th>Berhasil</th><th class="num">PSNR</th><th class="num">NC</th><th class="num">BER</th><th>Berhasil</th></tr>
+    </thead>
+    <tbody>
+    {% for row in pivot %}
+      <tr><td>{{ row.short }}</td>
+      {% for m in ('dct', 'lsb') %}{% set x = row[m] %}
+        {% if x %}<td class="num">{{ 'inf' if x.mean_psnr > 1000 else '%.2f'|format(x.mean_psnr) }}</td><td class="num">{{ '%.4f'|format(x.mean_nc) }}</td><td class="num">{{ '%.4f'|format(x.mean_ber) }}</td><td>{{ x.success }}/{{ x.n }}</td>
+        {% else %}<td colspan="4">-</td>{% endif %}
+      {% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="hint">PSNR = citra asli vs citra setelah serangan (dB). Berhasil = teks watermark terbaca persis sama dan lolos CRC.</p>
+
+  <h2 style="margin-top:2rem">Temuan dari data</h2>
+  <ul class="facts">{% for fact in facts %}<li>{{ fact }}</li>{% endfor %}</ul>
+
+  <h2 style="margin-top:2rem">Grafik DCT vs LSB</h2>
+  <div class="grid grid-2">
+    {% for name, title in [('attack_vs_psnr.png', 'Attack vs PSNR'), ('attack_vs_nc.png', 'Attack vs NC'), ('attack_vs_ber.png', 'Attack vs BER'), ('attack_vs_success.png', 'Attack vs keberhasilan')] %}
+    <div class="chart"><img src="{{ url_for('wm.files', category='charts', filename=name) }}?v={{ results.generated_at|replace(' ', '')|replace(':', '')|replace('-', '') }}" alt="Grafik {{ title }}" loading="lazy"></div>
+    {% endfor %}
+  </div>
+
+  <details class="advanced" style="margin-top:1.5rem">
+    <summary>Semua baris hasil ({{ results.rows|length }})</summary>
+    <div class="table-wrap" style="margin-top:.75rem"><table>
+      <thead><tr><th>Image</th><th>Method</th><th>Attack</th><th>Parameter</th><th class="num">PSNR Watermarked</th><th class="num">PSNR After Attack</th><th class="num">NC</th><th class="num">BER</th><th>Status</th></tr></thead>
+      <tbody>{% for r in results.rows %}
+        <tr><td>{{ r.image }}</td><td>{{ r.method }}</td><td>{{ r.attack }}</td><td>{{ r.parameter }}</td>
+        <td class="num">{{ '%.2f'|format(r.psnr_watermarked) }}</td><td class="num">{{ '%.2f'|format(r.psnr_after_attack) }}</td>
+        <td class="num">{{ '%.4f'|format(r.nc) }}</td><td class="num">{{ '%.4f'|format(r.ber) }}</td>
+        <td><span class="badge {{ 'ok' if r.status == 'SUCCESS' else 'fail' }}">{{ r.status }}</span></td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  </details>
+</section>
+{% else %}
+<section class="section"><div class="card"><h3>Belum ada hasil</h3><p>Masukkan secret key lalu jalankan perbandingan, atau jalankan <code>python scripts/run_evaluation.py</code> di terminal.</p></div></section>
+{% endif %}
+{% endblock %}

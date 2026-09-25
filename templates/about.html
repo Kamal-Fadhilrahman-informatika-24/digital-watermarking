@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block content %}
+<section class="section">
+  <h1>Tentang proyek</h1>
+  <div class="card">
+    <p><strong>Nama proyek:</strong> Digital Watermarking: Robust DCT Image Protection</p>
+    <p><strong>Mata kuliah:</strong> Keamanan Informasi (Information Security)</p>
+    <p><strong>Topik:</strong> Digital Watermarking</p>
+    <p class="muted" style="margin-bottom:0"><strong>Tujuan:</strong> menyisipkan watermark teks ke dalam citra, mengekstraksinya kembali, dan mengukur ketahanannya terhadap manipulasi citra memakai PSNR, NC, dan BER.</p>
+  </div>
+
+  <h2 style="margin-top:2rem">Metode</h2>
+  <div class="grid grid-2">
+    <div class="card robust"><h3>DCT Robust</h3><p>Channel Y dibagi blok 8×8, di-DCT (OpenCV). Bit watermark diatur lewat selisih dua koefisien mid-frequency, diulang di banyak blok yang dipilih secret key, dan dibaca dengan soft voting. Ekstraksi blind.</p></div>
+    <div class="card fragile"><h3>LSB Fragile</h3><p>Fitur pengayaan: bit payload ditulis pada LSB piksel di posisi yang ditentukan secret key. Metode ini sengaja rapuh dan dipakai sebagai pembanding, bukan sebagai metode robust.</p></div>
+  </div>
+
+  <h2 style="margin-top:2rem">Metrik</h2>
+  <div class="grid grid-3">
+    <div class="card"><h3>PSNR</h3><p>10·log10(255² / MSE), dalam dB. Dihitung antara citra asli dan citra ber-watermark, serta antara citra asli dan citra setelah serangan.</p></div>
+    <div class="card"><h3>NC</h3><p>Σ(w·w′) / √(Σw² · Σw′²) pada bit payload asli (w) dan hasil ekstraksi (w′).</p></div>
+    <div class="card"><h3>BER</h3><p>Jumlah bit berbeda dibagi total bit payload.</p></div>
+  </div>
+
+  <h2 style="margin-top:2rem">Catatan strategi serangan</h2>
+  <ul class="facts">
+    <li><strong>Cropping:</strong> 10% lebar dan tinggi dipotong (5% tiap sisi, offset dibulatkan ke kelipatan 8 piksel). Citra dikembalikan ke kanvas ukuran asli pada posisi semula, dan blok di area yang hilang dianggap hilang (erasure). Ini mengasumsikan ukuran asli dan posisi crop diketahui.</li>
+    <li><strong>Resize:</strong> citra diperkecil ke 75%, lalu diskalakan kembali ke ukuran asli sebelum ekstraksi karena metode membaca grid blok 8×8.</li>
+    <li><strong>Batas:</strong> crop dengan offset sembarang atau rotasi tidak ditangani metode ini.</li>
+  </ul>
+
+  <h2 style="margin-top:2rem">Academic Project</h2>
+  <p class="muted">Aplikasi ini dibuat untuk keperluan tugas kuliah dan tidak dimaksudkan sebagai produk komersial. Hasil pengujian bergantung pada citra dan parameter yang dipakai.</p>
+</section>
+{% endblock %}

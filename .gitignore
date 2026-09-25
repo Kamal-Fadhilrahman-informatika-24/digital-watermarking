@@ -1,0 +1,26 @@
+# Lingkungan Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Rahasia dan konfigurasi lokal (jangan pernah di-commit)
+.env
+
+# Log
+*.log
+
+# Data hasil proses (dibuat ulang oleh aplikasi/skrip)
+uploads/*
+outputs/*
+test_data/watermarked/*
+test_data/attacks/*
+
+# Pertahankan folder kosong di git
+!uploads/.gitkeep
+!outputs/.gitkeep
+!test_data/watermarked/.gitkeep
+!test_data/attacks/.gitkeep

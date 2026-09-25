@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Watermark{% endblock %}
+{% block content %}
+<section class="section">
+  <h1>Sisipkan watermark</h1>
+  <p class="muted">Watermark benar-benar ditanam ke data citra dan hasilnya disimpan sebagai PNG (lossless).</p>
+  {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+  <form class="card form-card" method="post" action="{{ url_for('wm.embed') }}" enctype="multipart/form-data" data-loading="Menyisipkan watermark...">
+    <label for="image">Upload citra</label>
+    <input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required data-preview="preview">
+    <p class="hint">Format PNG / JPG / JPEG, maksimum {{ max_upload_mb }} MB, sisi terpendek minimal 128 piksel.</p>
+    <div class="preview-box" id="preview"></div>
+
+    <label for="watermark_text">Teks watermark</label>
+    <input type="text" id="watermark_text" name="watermark_text" maxlength="64" required value="{{ form.watermark_text if form.watermark_text is defined else default_watermark }}" placeholder="{{ default_watermark }}">
+    <p class="hint">Nama pemilik atau NPM. Maksimum 64 byte (UTF-8).</p>
+
+    <label for="secret_key">Secret key</label>
+    <input type="password" id="secret_key" name="secret_key" required autocomplete="off">
+    <p class="hint">Key menentukan posisi penyisipan. Key tidak disimpan dan tidak ditampilkan kembali. <button type="button" class="btn" style="padding:.15rem .6rem;font-weight:500" data-toggle-password="secret_key">Tampilkan key</button></p>
+
+    <label>Metode</label>
+    <div class="radio-row">
+      <label><input type="radio" name="method" value="dct" {{ 'checked' if form.method != 'lsb' }}><span>DCT Robust<small>Tahan JPEG, noise, resize, dll. (default)</small></span></label>
+      <label><input type="radio" name="method" value="lsb" {{ 'checked' if form.method == 'lsb' }}><span>LSB Fragile<small>Pembanding: rapuh terhadap manipulasi</small></span></label>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" type="submit">Sisipkan Watermark</button></div>
+  </form>
+</section>
+{% endblock %}

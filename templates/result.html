@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Hasil Watermark{% endblock %}
+{% block content %}
+<section class="section">
+  <h1>Hasil watermarking</h1>
+  <p class="muted">File: {{ job.filename }} &middot; ukuran diproses {{ job.width }}×{{ job.height }} piksel &middot; {{ job.created }}</p>
+  {% if job.was_resized %}<div class="alert alert-warn">Citra asli ({{ job.original_width }}×{{ job.original_height }}) dikecilkan ke {{ job.width }}×{{ job.height }} agar pemrosesan tetap ringan.</div>{% endif %}
+  {% if job.warning %}<div class="alert alert-warn" role="alert">{{ job.warning }}</div>{% endif %}
+  {% if job.valid %}<div class="alert alert-ok">Watermark berhasil dideteksi kembali dari file hasil.</div>
+  {% else %}<div class="alert alert-error" role="alert">{{ job.message }}</div>{% endif %}
+
+  <div class="image-grid">
+    <figure><div class="image-frame"><img src="{{ url_for('wm.files', category='original', filename=job.job_id ~ '.png') }}" alt="Citra asli"></div><figcaption>Original Image</figcaption></figure>
+    <figure><div class="image-frame"><img src="{{ url_for('wm.files', category='watermarked', filename=job.job_id ~ '.png') }}" alt="Citra ber-watermark"></div><figcaption>Watermarked Image</figcaption></figure>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="label">PSNR (asli vs watermarked)</div><div class="value">{% if job.psnr_is_infinite %}∞ dB{% else %}{{ '%.2f'|format(job.psnr) }} dB{% endif %}</div></div>
+    <div class="metric"><div class="label">NC</div><div class="value">{{ '%.4f'|format(job.nc) }}</div></div>
+    <div class="metric"><div class="label">BER</div><div class="value">{{ '%.4f'|format(job.ber) }}</div></div>
+    <div class="metric"><div class="label">Method</div><div class="value" style="font-family:var(--sans);font-size:1.1rem">{{ job.method }}</div></div>
+    <div class="metric"><div class="label">Secret key</div><div class="value" style="font-family:var(--sans);font-size:1.1rem">Dipakai, tidak ditampilkan</div></div>
+  </div>
+
+  <h3>Extracted Watermark</h3>
+  <div class="payload">{{ job.extracted or '(tidak ada)' }}</div>
+
+  <div class="btn-row">
+    <a class="btn btn-primary" href="{{ url_for('wm.download', job_id=job.job_id) }}">Download Watermarked Image</a>
+    <a class="btn" href="{{ url_for('wm.detect', job=job.job_id) }}">Detect Watermark</a>
+    <a class="btn" href="{{ url_for('testing.attack_testing', job=job.job_id) }}">Run Attack Testing</a>
+  </div>
+  <p class="hint">Blok yang dipakai: {{ job.info.blocks_total if job.info.blocks_total is defined else '-' }}{% if job.info.body_repetition is defined %} &middot; pengulangan per bit: {{ job.info.body_repetition }}{% endif %}{% if job.info.strength is defined %} &middot; embed strength: {{ job.info.strength }}{% endif %}</p>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Attack Testing{% endblock %}
+{% block content %}
+<section class="section">
+  <h1>Attack testing</h1>
+  <p class="muted">Menjalankan 9 kondisi uji: tanpa serangan, JPEG 90/70/50, cropping, resize, Gaussian noise, brightness, dan contrast. Setiap serangan disimpan sebagai file berbeda, diekstraksi ulang, lalu diukur PSNR, NC, dan BER.</p>
+  {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+  <form class="card form-card" method="post" action="{{ url_for('testing.attack_testing') }}" enctype="multipart/form-data" data-loading="Menjalankan seluruh serangan dan ekstraksi...">
+    {% if job %}
+      <input type="hidden" name="job" value="{{ job.job_id }}">
+      <p>Memakai hasil embedding <code>{{ job.job_id }}</code> ({{ job.method }}, watermark <strong>{{ job.watermark_text }}</strong>).</p>
+      <div class="image-frame"><img src="{{ url_for('wm.files', category='watermarked', filename=job.job_id ~ '.png') }}" alt="Citra ber-watermark"></div>
+      <p class="hint">Masukkan secret key yang sama. Key tidak disimpan, jadi perlu dimasukkan lagi.</p>
+    {% else %}
+      <label for="image">Upload citra asli</label>
+      <input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required data-preview="preview">
+      <div class="preview-box" id="preview"></div>
+      <label for="watermark_text">Teks watermark</label>
+      <input type="text" id="watermark_text" name="watermark_text" maxlength="64" required value="{{ form.watermark_text or default_watermark }}">
+      <label for="method">Metode</label>
+      <select id="method" name="method">
+        <option value="dct" {{ 'selected' if form.method != 'lsb' }}>DCT Robust</option>
+        <option value="lsb" {{ 'selected' if form.method == 'lsb' }}>LSB Fragile</option>
+      </select>
+    {% endif %}
+    <label for="secret_key">Secret key</label>
+    <input type="password" id="secret_key" name="secret_key" required autocomplete="off">
+    <div class="btn-row"><button class="btn btn-primary" type="submit">Run All Tests</button></div>
+  </form>
+</section>
+{% endblock %}
