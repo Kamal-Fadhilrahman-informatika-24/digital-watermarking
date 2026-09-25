@@ -303,9 +303,9 @@ Kunci di berkas test adalah kunci uji (dummy), bukan secret asli.
 
 **Identitas (isi sendiri sebelum dikumpulkan):**
 
-- Nama: `________________`
-- NPM: `________________`
-- Kelompok / anggota: `________________`
+- Nama: `Kamal Fadhilrahman`
+- NPM: `247006111122`
+- Kelompok / anggota: `Muhammad Azka Haikal [247006111087], Muhammad Abilnur [247006111099]`
 - Dosen pengampu: `________________`
 
 Proyek akademik. Pastikan hanya memakai citra yang Anda berhak gunakan.
