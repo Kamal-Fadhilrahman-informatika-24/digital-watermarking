@@ -44,6 +44,7 @@ code, .mono { font-family: var(--mono); font-size: .92em; }
 /* buttons */
 .btn { display: inline-block; padding: .7rem 1.2rem; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); text-decoration: none; font: inherit; font-weight: 600; cursor: pointer; }
 .btn:hover { border-color: var(--accent); }
+.btn:disabled { opacity: .6; cursor: not-allowed; filter: none; }
 .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn-primary:hover { filter: brightness(1.08); }
 .btn-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
