@@ -21,7 +21,7 @@ Semua angka (PSNR, NC, BER, status SUCCESS/FAIL) dihitung dari file hasil serang
 |---|---|
 | **Home** (`/`) | Ringkasan proyek dan alur kerja. |
 | **Watermark** (`/embed`) | Upload citra, isi teks watermark dan secret key, pilih metode, lalu unduh hasilnya. Menampilkan citra asli vs ber-watermark, PSNR, dan hasil verifikasi ekstraksi. |
-| **Detect** (`/detect`) | Ekstraksi watermark dari citra (upload baru atau hasil embed sebelumnya). Menampilkan teks, status, dan opsional NC/BER jika teks asli diisi. |
+| **Detect** (`/detect`) | Ekstraksi watermark dari citra (upload baru atau hasil embed sebelumnya). Menampilkan teks, status, opsional NC/BER jika teks asli diisi, dan untuk metode LSB Fragile menampilkan **peta area yang terdeteksi berubah** (lihat §12.1). |
 | **Attack Testing** (`/testing`) | Menjalankan 9 kondisi uji, menyimpan tiap hasil serangan sebagai file berbeda, mengekstraksi ulang, lalu menampilkan tabel, grafik, dan tombol unduh XLSX. |
 | **Comparison** (`/comparison`) | Membandingkan DCT Robust dan LSB Fragile pada seluruh dataset. |
 | **About** (`/about`) | Deskripsi proyek, metode, metrik, dan strategi serangan. |
@@ -145,6 +145,28 @@ Nilai `S = 24` dipilih dari percobaan penyapuan kekuatan (8, 12, 16, 24). Kekuat
 ## 12. Algoritma LSB Fragile
 
 Bit payload (format sama dengan DCT) ditulis ke bit terendah nilai piksel pada posisi yang diturunkan dari secret key. Tiap bit ditulis satu kali tanpa pengulangan, sehingga perubahan sekecil apa pun merusak watermark. Ini disengaja: LSB dipakai untuk memperlihatkan mengapa domain frekuensi lebih tahan serangan.
+
+### 12.1 Peta area yang terdeteksi berubah (block-level tamper localization)
+
+Selain payload teks identitas di atas, jalur LSB juga menanam lapisan autentikasi
+per-blok yang terpisah (`watermark/tamper.py`):
+
+1. Citra dibagi menjadi blok 16×16 piksel.
+2. Untuk tiap blok, dihitung `HMAC-SHA256(secret_key, indeks_blok || MSB7_blok)` —
+   MSB7 berarti 7 bit teratas tiap piksel di blok itu (bit LSB tidak ikut dihitung,
+   sehingga penulisan payload teks/otentikasi sendiri tidak pernah mengubah hash).
+3. 16 bit pertama dari HMAC tersebut ditanam ke LSB piksel-piksel *bebas* pada blok
+   yang sama (piksel yang tidak dipakai payload teks) — self-embedding, blind
+   (tidak butuh citra asli saat verifikasi).
+4. Saat `/detect`, hash dihitung ulang dari MSB7 blok yang diterima dan dibandingkan
+   dengan bit yang tertanam. Blok yang tidak cocok berarti kontennya berubah setelah
+   proses embedding, dan digambar sebagai overlay merah tembus pandang di atas citra.
+
+Halaman **Detect** menampilkan peta ini secara otomatis untuk metode LSB Fragile,
+lengkap dengan jumlah blok yang berubah dan persentase area yang terdampak. Karena
+metode ini memang fragile, kompresi JPEG ulang atau secret key yang salah akan
+membuat hampir seluruh blok tertandai — ini perilaku yang diharapkan (bukan bug),
+dan diuji di `tests/test_tamper.py`.
 
 ## 13. Peran Secret Key
 
