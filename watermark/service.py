@@ -21,6 +21,7 @@ from .errors import ImageValidationError, WatermarkError
 from .methods import get_method
 from .metrics import calculate_ber, calculate_nc, calculate_psnr
 from .payload import encode_payload
+from .tamper import detect_tamper_map, embed_tamper_watermark, encode_png_data_uri, render_tamper_overlay
 from .utils import (
     check_image,
     cleanup_old_files,
@@ -86,9 +87,15 @@ def embed_upload(data: bytes, display_name: str, text: str, secret_key: str, met
     storage.cleanup()
 
     embedded = method.embed(image, text, secret_key)
+    final_image = embedded.image
+    if method.key == "lsb":
+        # Jalur fragile: tanam juga bit autentikasi per-blok (terpisah dari payload
+        # teks) supaya /detect bisa menampilkan peta area yang terdeteksi berubah.
+        payload_positions = embedded.info.get("payload_positions", [])
+        final_image = embed_tamper_watermark(final_image, secret_key, reserved_positions=payload_positions)
     job_id = new_job_id()
     save_png(storage.upload / f"{job_id}.png", image)
-    save_png(storage.watermarked / f"{job_id}.png", embedded.image)
+    save_png(storage.watermarked / f"{job_id}.png", final_image)
 
     watermarked_file = read_image(storage.watermarked / f"{job_id}.png")  # verifikasi dari file
     extraction = method.extract(watermarked_file, secret_key, force_length=encode_payload(text).data_length)
@@ -176,8 +183,28 @@ def detect_bytes(
     if not extraction.valid and not result["message"]:
         result["message"] = "Watermark tidak valid atau secret key salah."
     result["status"] = "SUCCESS" if status_ok else "FAIL"
+
+    if method.key == "lsb":
+        result["tamper_map"] = _build_tamper_map(image, secret_key, extraction.reserved_positions)
+
     logger.info("Detection finished: %s", result["status"])
     return result
+
+
+def _build_tamper_map(image: np.ndarray, secret_key: str, reserved_positions) -> Dict:
+    """Compute the fragile-path tamper map and render it as an inline PNG (data URI)."""
+    tamper = detect_tamper_map(image, secret_key, reserved_positions=reserved_positions)
+    overlay = render_tamper_overlay(image, tamper)
+    return {
+        "rows": tamper.rows,
+        "cols": tamper.cols,
+        "block_size": tamper.block_size,
+        "total_blocks": tamper.total_blocks,
+        "tampered_blocks": tamper.tampered_blocks,
+        "unverifiable_blocks": int(tamper.unverifiable.sum()),
+        "tampered_ratio": tamper.tampered_ratio,
+        "overlay_data_uri": encode_png_data_uri(overlay),
+    }
 
 
 # ------------------------------------------------------------ attack testing

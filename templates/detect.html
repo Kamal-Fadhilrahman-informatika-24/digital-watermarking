@@ -21,6 +21,30 @@
     <div class="payload">{{ detection.watermark or '(tidak ditemukan)' }}</div>
     {% if detection.nc is none %}<p class="hint">NC dan BER hanya bisa dihitung jika teks watermark asli diisi pada form di bawah.</p>{% endif %}
   </div>
+
+  {% if detection.tamper_map %}
+  {% set tm = detection.tamper_map %}
+  <div class="card" style="margin-bottom:1rem">
+    <h2>Peta area yang terdeteksi berubah <span class="badge {{ 'ok' if tm.tampered_blocks == 0 else 'fail' }}">{{ 'UTUH' if tm.tampered_blocks == 0 else 'TERDETEKSI PERUBAHAN' }}</span></h2>
+    <p class="hint">
+      Verifikasi fragile per-blok ({{ tm.block_size }}×{{ tm.block_size }} piksel, {{ tm.total_blocks }} blok).
+      Blok yang ditandai <strong style="color:#ff8a8a">merah</strong> gagal verifikasi HMAC per-blok, artinya isi blok tersebut
+      berubah setelah proses embedding (atau secret key yang dipakai salah).
+      {% if tm.unverifiable_blocks %}<strong style="color:#ffd27a">Kuning</strong> = blok tanpa kapasitas cukup untuk diverifikasi ({{ tm.unverifiable_blocks }} blok).{% endif %}
+    </p>
+    <div class="metrics">
+      <div class="metric"><div class="label">Blok berubah</div><div class="value">{{ tm.tampered_blocks }} / {{ tm.total_blocks }}</div></div>
+      <div class="metric"><div class="label">Persentase area berubah</div><div class="value">{{ '%.2f'|format(tm.tampered_ratio * 100) }}%</div></div>
+      <div class="metric"><div class="label">Ukuran blok</div><div class="value">{{ tm.block_size }}px</div></div>
+    </div>
+    <div class="image-frame" style="height:420px">
+      <img src="{{ tm.overlay_data_uri }}" alt="Peta area yang terdeteksi berubah">
+    </div>
+    {% if tm.tampered_ratio > 0.95 %}
+    <p class="hint">Hampir seluruh blok gagal verifikasi. Ini biasanya berarti secret key yang dimasukkan salah, atau citra sudah dikompresi ulang / diproses (mis. disimpan sebagai JPEG) sehingga watermark fragile rusak total &mdash; sesuai sifat metode LSB fragile.</p>
+    {% endif %}
+  </div>
+  {% endif %}
   {% endif %}
 
   <form class="card form-card" method="post" action="{{ url_for('wm.detect') }}" enctype="multipart/form-data" data-loading="Mendeteksi watermark...">

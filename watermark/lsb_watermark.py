@@ -40,7 +40,8 @@ def embed_lsb_watermark(image: np.ndarray, text: str, secret_key: str) -> EmbedR
     flat = image.reshape(-1).copy()
     flat[positions] = (flat[positions] & 0xFE) | bits
     logger.info("LSB embedding completed")
-    return EmbedResult(flat.reshape(image.shape), "lsb", len(bits), {"capacity_bits": int(total)})
+    info = {"capacity_bits": int(total), "payload_positions": positions.tolist()}
+    return EmbedResult(flat.reshape(image.shape), "lsb", len(bits), info)
 
 
 def _read_bits(flat: np.ndarray, width: int, positions: np.ndarray, region: Optional[Region]) -> np.ndarray:
@@ -73,19 +74,21 @@ def extract_lsb_watermark(
     except PayloadError as exc:
         length, header_ok, message = force_length, False, str(exc)
     if length is None:
-        return ExtractionResult(False, "", message, header_bits, region=valid_region)
+        return ExtractionResult(False, "", message, header_bits, region=valid_region, reserved_positions=header_pos)
 
     total_bits = HEADER_BITS + body_bit_count(length)
     if total_bits > flat.size:
-        return ExtractionResult(False, "", message or "Payload tidak muat pada citra ini.", header_bits, header_ok, False, valid_region)
+        return ExtractionResult(False, "", message or "Payload tidak muat pada citra ini.", header_bits, header_ok, False,
+                                 valid_region, reserved_positions=header_pos)
     positions = np.array(generate_lsb_positions(flat.size, total_bits, secret_key), dtype=np.int64)
     bits = _read_bits(flat, width, positions, valid_region)
     raw, body = bits, bits[HEADER_BITS:]
     if not header_ok:
-        return ExtractionResult(False, "", message, raw, False, False, valid_region)
+        return ExtractionResult(False, "", message, raw, False, False, valid_region, reserved_positions=positions)
     try:
         text = decode_body(body, length)
     except PayloadError as exc:
-        return ExtractionResult(False, "", str(exc), raw, True, False, valid_region)
+        return ExtractionResult(False, "", str(exc), raw, True, False, valid_region, reserved_positions=positions)
     logger.info("LSB extraction completed (valid)")
-    return ExtractionResult(True, text, "Watermark berhasil dideteksi.", raw, True, True, valid_region)
+    return ExtractionResult(True, text, "Watermark berhasil dideteksi.", raw, True, True, valid_region,
+                             reserved_positions=positions)

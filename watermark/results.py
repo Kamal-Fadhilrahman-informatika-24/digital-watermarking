@@ -28,3 +28,6 @@ class ExtractionResult:
     header_valid: bool = False
     crc_valid: bool = False
     region: Optional[Region] = None
+    # Posisi flat (image.reshape(-1)) yang dipakai payload watermark, jika diketahui.
+    # Dipakai watermark.tamper agar peta tamper tidak menandai piksel payload sendiri.
+    reserved_positions: Optional[np.ndarray] = None
