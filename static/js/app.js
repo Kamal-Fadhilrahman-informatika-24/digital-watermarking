@@ -39,14 +39,67 @@
   });
 
     // Overlay loading untuk proses yang memakan waktu
-  document.querySelectorAll("form[data-loading]").forEach(function (form) {
-    form.addEventListener("submit", function () {
-      var overlay = document.getElementById("loading");
-      if (overlay) {
-        var text = overlay.querySelector("[data-loading-text]");
-        if (text) text.textContent = form.getAttribute("data-loading");
-        overlay.classList.add("show");
+    // Validasi input sederhana sebelum form dikirim
+  var VALIDATION_MESSAGES = {
+    image: "\u26A0\uFE0F Silakan pilih gambar terlebih dahulu.",
+    watermark_text: "\u26A0\uFE0F Teks watermark tidak boleh kosong.",
+    secret_key: "\u26A0\uFE0F Secret key wajib diisi."
+  };
+  var ALLOWED_EXT = [".png", ".jpg", ".jpeg"];
+
+  function clearValidationAlert(form) {
+    var old = form.parentNode.querySelector('[data-client-alert="1"]');
+    if (old) old.remove();
+  }
+
+  function showValidationAlert(form, message, field) {
+    clearValidationAlert(form);
+    var box = document.createElement("div");
+    box.className = "alert alert-error";
+    box.setAttribute("role", "alert");
+    box.setAttribute("data-client-alert", "1");
+    box.textContent = message;
+    form.parentNode.insertBefore(box, form);
+    if (field) field.focus();
+  }
+
+  function validateForm(form) {
+    var required = form.querySelectorAll("[required]");
+    for (var i = 0; i < required.length; i++) {
+      var field = required[i];
+      var empty = field.type === "file" ? field.files.length === 0 : field.value.trim() === "";
+      if (empty) {
+        var msg = VALIDATION_MESSAGES[field.name] || ("\u26A0\uFE0F Kolom \u201c" + field.name + "\u201d wajib diisi.");
+        showValidationAlert(form, msg, field);
+        return false;
       }
+    }
+    var imageField = form.querySelector('input[type="file"][name="image"]');
+    if (imageField && imageField.files.length > 0) {
+      var filename = imageField.files[0].name.toLowerCase();
+      var ok = ALLOWED_EXT.some(function (ext) { return filename.endsWith(ext); });
+      if (!ok) {
+        showValidationAlert(form, "\u26A0\uFE0F Format file harus PNG atau JPG.", imageField);
+        return false;
+      }
+    }
+    clearValidationAlert(form);
+    return true;
+  }
+
+  // Overlay loading untuk proses yang memakan waktu
+  document.querySelectorAll("form[data-loading]").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      if (!validateForm(form)) {
+        event.preventDefault();
+        return;
+      }
+      var overlay = document.getElementById("loading");
+      if (!overlay) return;
+      var text = overlay.querySelector("[data-loading-text]");
+      if (text) text.textContent = form.getAttribute("data-loading");
+      overlay.classList.add("show");
+    
       // Cegah klik berulang: nonaktifkan tombol submit selama proses berjalan
       var btn = form.querySelector('button[type="submit"]');
       if (btn && !btn.disabled) {
