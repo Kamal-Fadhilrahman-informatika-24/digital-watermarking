@@ -38,6 +38,7 @@
 
   <div class="btn-row">
     <a class="btn btn-primary" href="{{ url_for('testing.download_report', name='run_' ~ run.run_id ~ '.xlsx') }}">Download Laporan XLSX</a>
+    <a class="btn" href="{{ url_for('testing.download_attacked_images', run_id=run.run_id) }}">Download Attacked Images (ZIP)</a>
     {% if job %}<a class="btn" href="{{ url_for('wm.result', job_id=job.job_id) }}">Kembali ke hasil embedding</a>{% endif %}
     <a class="btn" href="{{ url_for('testing.comparison') }}">Perbandingan Metode</a>
   </div>

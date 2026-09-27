@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import io
 import re
 import zipfile
-from flask import send_file
 
-from flask import Blueprint, abort, current_app, redirect, render_template, request, send_from_directory, url_for
+from flask import Blueprint, abort, current_app, redirect, render_template, request, send_file, send_from_directory, url_for
 
 from watermark import config
 from watermark.errors import WatermarkError
@@ -103,23 +103,25 @@ def download_report(name: str):
         abort(404)
     return send_from_directory(storage().reports, name, as_attachment=True)
 
-@testing_bp.route("/download-results")
-def download_results():
-    """
-    Download seluruh hasil pengujian dalam satu file ZIP.
-    """
+@testing_bp.route("/testing/run/<run_id>/download-attacks")
+def download_attacked_images(run_id: str):
+    """Unduh semua citra hasil serangan (satu run attack testing) sebagai satu ZIP."""
+    if not is_valid_job_id(run_id):
+        abort(404)
+    run_dir = storage().attacks / run_id
+    if not run_dir.exists():
+        abort(404)
 
-    results_dir = storage.results_dir
-    zip_path = results_dir / "watermark_results.zip"
-
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for file in results_dir.iterdir():
-            if file.suffix.lower() in [".png", ".jpg", ".jpeg", ".xlsx", ".csv"]:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for file in sorted(run_dir.iterdir()):
+            if file.is_file() and file.suffix.lower() in (".png", ".jpg", ".jpeg"):
                 zipf.write(file, arcname=file.name)
+    buffer.seek(0)
 
     return send_file(
-        zip_path,
+        buffer,
         as_attachment=True,
-        download_name="watermark_results.zip",
-        mimetype="application/zip"
+        download_name=f"attacked_images_{run_id}.zip",
+        mimetype="application/zip",
     )
