@@ -306,6 +306,6 @@ Kunci di berkas test adalah kunci uji (dummy), bukan secret asli.
 - Nama: `Kamal Fadhilrahman`
 - NPM: `247006111122`
 - Kelompok / anggota: `Muhammad Azka Haikal [247006111087], Muhammad Abilnur [247006111099]`
-- Dosen pengampu: `________________`
+- Dosen pengampu: `Ir. Alam Rahmatulloh, S.T., M.T., MCE., IPM.`
 
 Proyek akademik. Pastikan hanya memakai citra yang Anda berhak gunakan.

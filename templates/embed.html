@@ -12,7 +12,7 @@
     <div class="preview-box" id="preview"></div>
 
     <label for="watermark_text">Teks watermark</label>
-    <input type="text" id="watermark_text" name="watermark_text" maxlength="64" required value="{{ form.watermark_text if form.watermark_text is defined else default_watermark }}" placeholder="{{ default_watermark }}">
+    <input type="text" id="watermark_text" name="watermark_text" maxlength="64" required value="{{ form.watermark_text if form.watermark_text is defined else default_watermark }}" placeholder="Input Teks Identitas Pemilik">
     <p class="hint">Nama pemilik atau NPM. Maksimum 64 byte (UTF-8).</p>
 
     <label for="secret_key">Secret key</label>

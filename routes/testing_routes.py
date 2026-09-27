@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import zipfile
+from flask import send_file
 
 from flask import Blueprint, abort, current_app, redirect, render_template, request, send_from_directory, url_for
 
@@ -100,3 +102,24 @@ def download_report(name: str):
     if not (storage().reports / name).exists():
         abort(404)
     return send_from_directory(storage().reports, name, as_attachment=True)
+
+@testing_bp.route("/download-results")
+def download_results():
+    """
+    Download seluruh hasil pengujian dalam satu file ZIP.
+    """
+
+    results_dir = storage.results_dir
+    zip_path = results_dir / "watermark_results.zip"
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for file in results_dir.iterdir():
+            if file.suffix.lower() in [".png", ".jpg", ".jpeg", ".xlsx", ".csv"]:
+                zipf.write(file, arcname=file.name)
+
+    return send_file(
+        zip_path,
+        as_attachment=True,
+        download_name="watermark_results.zip",
+        mimetype="application/zip"
+    )

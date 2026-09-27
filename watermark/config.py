@@ -35,7 +35,7 @@ TEMP_FILE_MAX_AGE_HOURS = 24
 PAYLOAD_MAGIC = b"DW01"  # penanda payload watermark
 PAYLOAD_VERSION = 1
 MAX_WATERMARK_BYTES = 64  # panjang watermark maksimum (bytes UTF-8)
-DEFAULT_WATERMARK_TEXT = "KAMAL FADHILRAHMAN"
+DEFAULT_WATERMARK_TEXT = ""
 
 # ------------------------------------------------------------- DCT method
 BLOCK_SIZE = 8

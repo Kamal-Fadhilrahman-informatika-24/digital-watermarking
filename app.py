@@ -19,7 +19,6 @@ from routes.watermark_routes import wm_bp
 from watermark import config
 from watermark.service import Storage
 
-
 def create_app(test_config: Optional[dict] = None) -> Flask:
     app = Flask(__name__)
     # SECRET_KEY hanya dipakai untuk session/flash. Diambil dari environment;
