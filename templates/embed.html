@@ -7,9 +7,10 @@
   {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
   <form class="card form-card" method="post" action="{{ url_for('wm.embed') }}" enctype="multipart/form-data" data-loading="Menyisipkan watermark...">
     <label for="image">Upload citra</label>
-    <input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required data-preview="preview">
+<input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required data-preview="preview" data-info="preview-info">
     <p class="hint">Format PNG / JPG / JPEG, maksimum {{ max_upload_mb }} MB, sisi terpendek minimal 128 piksel.</p>
-    <div class="preview-box" id="preview"></div>
+<div class="preview-box" id="preview"></div>
+<div class="file-info" id="preview-info" hidden></div>
 
     <label for="watermark_text">Teks watermark</label>
     <input type="text" id="watermark_text" name="watermark_text" maxlength="64" required value="{{ form.watermark_text if form.watermark_text is defined else default_watermark }}" placeholder="Input Teks Identitas Pemilik">

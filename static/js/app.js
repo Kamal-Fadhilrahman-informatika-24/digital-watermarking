@@ -9,21 +9,67 @@
     });
   }
 
-  // Pratinjau gambar yang dipilih (hanya di browser, file belum diunggah)
+    // Pratinjau gambar + info file yang dipilih (hanya di browser, file belum diunggah)
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+  function formatFileType(file) {
+    if (file.type === "image/jpeg") return "JPEG";
+    if (file.type === "image/png") return "PNG";
+    if (file.type) return file.type.replace("image/", "").toUpperCase();
+    var ext = file.name.split(".").pop();
+    return ext ? ext.toUpperCase() : "-";
+  }
+
   document.querySelectorAll("input[type=file][data-preview]").forEach(function (input) {
     var box = document.getElementById(input.getAttribute("data-preview"));
+    var info = document.getElementById(input.getAttribute("data-info") || "");
+
     input.addEventListener("change", function () {
-      if (!box) return;
-      box.innerHTML = "";
+      if (box) box.innerHTML = "";
+      if (info) { info.innerHTML = ""; info.hidden = true; }
+
       var file = input.files && input.files[0];
       if (!file || !file.type.startsWith("image/")) return;
-      var frame = document.createElement("div");
-      frame.className = "image-frame";
-      var img = document.createElement("img");
-      img.alt = "Pratinjau " + file.name;
-      img.src = URL.createObjectURL(file);
-      frame.appendChild(img);
-      box.appendChild(frame);
+
+      var objectUrl = URL.createObjectURL(file);
+
+      if (box) {
+        var frame = document.createElement("div");
+        frame.className = "image-frame";
+        var img = document.createElement("img");
+        img.alt = "Pratinjau " + file.name;
+        img.src = objectUrl;
+        frame.appendChild(img);
+        box.appendChild(frame);
+      }
+
+      if (info) {
+        var title = document.createElement("strong");
+        title.textContent = "Selected Image";
+        info.appendChild(title);
+
+        var values = { filename: file.name, format: formatFileType(file), resolution: "mengukur...", size: formatFileSize(file.size) };
+        var resolutionEl;
+        ["filename", "format", "resolution", "size"].forEach(function (key) {
+          var row = document.createElement("div");
+          row.appendChild(document.createTextNode(key + ": "));
+          var value = document.createElement("span");
+          value.textContent = values[key];
+          row.appendChild(value);
+          info.appendChild(row);
+          if (key === "resolution") resolutionEl = value;
+        });
+        info.hidden = false;
+
+        var dimensionProbe = new Image();
+        dimensionProbe.onload = function () {
+          resolutionEl.textContent = dimensionProbe.naturalWidth + " \u00d7 " + dimensionProbe.naturalHeight;
+        };
+        dimensionProbe.src = objectUrl;
+      }
     });
   });
 
